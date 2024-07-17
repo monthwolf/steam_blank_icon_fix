@@ -18,6 +18,7 @@ for await (const entry of Deno.readDir(searchPath)) {
 
   const infoHtml = await fetch(`https://steamdb.info/app/${gameId}/info/`)
     .then((res) => res.text());
+  console.log(`${infoHtml}`)
   const iconUrl = infoHtml.match(/https.+\.ico/m)?.[0];
   const iconName = iconUrl?.match(/(\w|\d)+.ico/)?.[0];
   const hasIconPath = !!linkContent.match(/IconFile=.+/m);
