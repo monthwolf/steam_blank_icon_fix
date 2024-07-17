@@ -1,3 +1,5 @@
+import { decode, encode } from "https://deno.land/x/image@v0.0.3/mod.ts";
+
 const defaultSteamIconsPath = "C:/Program Files (x86)/Steam/steam/games";
 const steamIconsPath = Deno.args[1] || defaultSteamIconsPath;
 const searchPath = String(Deno.args[0] || ".");
@@ -38,11 +40,14 @@ for await (const entry of Deno.readDir(searchPath)) {
 
   if (!hasIconFile && iconUrl) {
     const iconBuffer = await fetch(iconUrl).then((res) => res.arrayBuffer());
+    const image = await decode(new Uint8Array(iconBuffer));
+    const ico = encode(image, "ico");
     await Deno.writeFile(
-      steamIconsPath + "/" + iconName,
-      new Uint8Array(iconBuffer),
+      steamIconsPath + "/" + iconName.replace('.jpg', '.ico'),
+      new Uint8Array(ico),
     );
   }
+
 
   console.group(entry.name);
   console.log(gameId, iconName);
