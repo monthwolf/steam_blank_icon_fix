@@ -1,22 +1,9 @@
-import puppeteer from "https://deno.land/x/puppeteer@14.1.1/mod.ts";
-
 const defaultSteamIconsPath = "C:/Program Files (x86)/Steam/steam/games";
-const steamIconsPath = String(Deno.args[1] || defaultSteamIconsPath);
+const steamIconsPath = Deno.args[1] || defaultSteamIconsPath;
 const searchPath = String(Deno.args[0] || ".");
 
 console.log(`Steam icons path: "${steamIconsPath}"`);
 console.log(`Searching shortcuts in: "${searchPath}"\n`);
-
-async function fetchSteamInfo(gameId) {
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  const url = `https://steamdb.info/app/${gameId}/info/`;
-
-  await page.goto(url, { waitUntil: 'networkidle0' });
-  const content = await page.content();
-  await browser.close();
-  return content;
-}
 
 for await (const entry of Deno.readDir(searchPath)) {
   if (!entry.isFile || !entry.name.endsWith(".url")) {
@@ -30,11 +17,10 @@ for await (const entry of Deno.readDir(searchPath)) {
     continue;
   }
 
-  const infoHtml = await fetchSteamInfo(gameId);
-  console.log(infoHtml)
-  const iconUrlMatch = infoHtml.match(/https.+\.ico/m);
-  const iconUrl = iconUrlMatch?.[0];
-  const iconName = iconUrl?.match(/(\w|\d)+\.ico/)?.[0];
+  const infoHtml = await fetch(`https://store.steampowered.com/app/${gameId}/`)
+    .then((res) => res.text());
+  const iconUrl = infoHtml.match(new RegExp(`https:.*?cdn.*?apps\/${gameId}.*?\.jpg`))?.[0];
+  const iconName = iconUrl?.match(/(\w|\d)+.jpg/)?.[0];
   const hasIconPath = !!linkContent.match(/IconFile=.+/m);
   const hasIconFile = iconName &&
     await Deno.stat(steamIconsPath + "/" + iconName).catch(() => {});
