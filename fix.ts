@@ -1,6 +1,7 @@
-import { decode, encode } from "https://deno.land/x/image@v0.0.3/mod.ts";
-
 const defaultSteamIconsPath = "C:/Program Files (x86)/Steam/steam/games";
+const CDN1 = "akamai";
+const CDN2 = "cloudflare";
+const useCDN = Deno.args[2] == 0 ? CDN1 : CDN2;
 const steamIconsPath = Deno.args[1] || defaultSteamIconsPath;
 const searchPath = String(Deno.args[0] || ".");
 
@@ -18,39 +19,22 @@ for await (const entry of Deno.readDir(searchPath)) {
   if (!gameId) {
     continue;
   }
-
-  const infoHtml = await fetch(`https://store.steampowered.com/app/${gameId}/`)
-    .then((res) => res.text());
-  const iconUrl = infoHtml.match(new RegExp(`https:.*?cdn.*?apps\/${gameId}.*?\.jpg`))?.[0];
-  const iconName = iconUrl?.match(/(\w|\d)+.jpg/)?.[0];
-  const hasIconPath = !!linkContent.match(/IconFile=.+/m);
-  const hasIconFile = iconName &&
-    await Deno.stat(steamIconsPath + "/" + iconName).catch(() => {});
-  const status = [!hasIconPath && "unlinked", !hasIconFile && "file missing"]
-    .filter(Boolean)
-    .join(", ") || "ok";
-
-  if (!hasIconPath) {
-    const linkContentFixed = linkContent.replace(
-      /IconFile=$/m,
-      `IconFile=${steamIconsPath}/${iconName}`,
-    );
-    await Deno.writeTextFile(entry.name, linkContentFixed);
-  }
-
+  const localIconName = linkContent.match(/(\w|\d)+.ico/m)?.[0];
+  const iconUrl = `https://cdn.${useCDN}.steamstatic.com/steamcommunity/public/images/apps/${gameId}/${localIconName}`;
+  const hasIconFile = localIconName &&
+    await Deno.stat(steamIconsPath + "/" + localIconName).catch(() => {});
+  const status =  hasIconFile ? "ok" : "missed";
   if (!hasIconFile && iconUrl) {
     const iconBuffer = await fetch(iconUrl).then((res) => res.arrayBuffer());
-    const image = await decode(new Uint8Array(iconBuffer));
-    const ico = encode(image, "ico");
     await Deno.writeFile(
-      steamIconsPath + "/" + iconName.replace('.jpg', '.ico'),
-      new Uint8Array(ico),
+      steamIconsPath + "/" + localIconName,
+      new Uint8Array(iconBuffer),
     );
   }
 
 
   console.group(entry.name);
-  console.log(gameId, iconName);
+  console.log(gameId, localIconName);
   console.log(status + "\n");
   console.groupEnd();
 }
