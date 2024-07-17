@@ -26,7 +26,7 @@ for await (const entry of Deno.readDir(flags.p1)) {
     continue;
   }
 
-  const linkContent = await Deno.readTextFile(entry.name);
+  const linkContent = await Deno.readTextFile(`${flags.p1}/${entry.name}`);
   const gameId = linkContent.match(/rungameid\/(.+)/m)?.[1];
 
   if (!gameId) {
