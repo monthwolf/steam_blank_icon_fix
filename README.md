@@ -13,11 +13,25 @@ Fixes blank icons for Steam games shortcuts
 
 ```--allow-write``` Fixes broken shortcuts and recovers icon files in your Steam folder
 
-## Usage
-Fix icons in the current folder:
+# 使用说明
+命令参数: `deno run --allow-read --allow-write fix.ts [--p1 <path>] [--p2 <path>] [--cdn] [--help]`
 
-```deno run --allow-net --allow-read --allow-write https://deno.land/x/steam_blank_icon_fix@1.0.2/fix.ts```
+```sh
+--p1 <path>    需要搜索的目录, 默认为当前目录".".
+--p2 <path>    steam图标目录, 默认为"C:/Program Files (x86)/Steam/steam/games".
+--cdn          是否使用cloudflare CDN，默认为False.
+--help         显示帮助信息.
+```
 
-Fix icons in a specified folder:
+## 使用示例
+当前文件夹下修复:
 
-```deno run --allow-net --allow-read --allow-write https://deno.land/x/steam_blank_icon_fix@1.0.2/fix.ts C:\Users\username\Desktop```
+```
+deno run --allow-net --allow-read --allow-write https://raw.githubusercontent.com/monthwolf/steam_blank_icon_fix/main/fix.ts
+```
+
+指定文件夹修复:
+
+```
+deno run --allow-net --allow-read --allow-write https://raw.githubusercontent.com/monthwolf/steam_blank_icon_fix/main/fix.ts --p1 C:\Users\username\Desktop
+```
